@@ -1,0 +1,3 @@
+{
+    "buildCommand": "yarn parcel 2d/index.html"
+}
