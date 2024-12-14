@@ -5,11 +5,13 @@ export class vector{
     }
 }
 export class PhysObject{
-    constructor(x,y,speed){
+    constructor(x,y,speed,direction){
         this.x = x
         this.y = y
         this.speed = speed
+        this.direction = direction
     }
 
 }
+
 module.exports = {PhysObject,vector}

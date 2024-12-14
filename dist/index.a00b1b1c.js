@@ -599,29 +599,72 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var _functions = require("./functions");
 var _classes = require("./classes");
 const canvas = document.getElementById("myCanvas");
+const reset = document.getElementById("reset");
+const new_obj = document.getElementById("new_obj");
+const dir_input = document.getElementById("direction_input");
+const speed_input = document.getElementById("speed_input");
+const clear = document.getElementById("clear");
 //defining an object with x and y values and a speed of two
-var test_obj = new (0, _classes.PhysObject)(canvas.width / 2, canvas.height - 30, 2);
-var test_obj2 = new (0, _classes.PhysObject)(canvas.width / 2, canvas.height - 30, 10);
+var test_obj = new (0, _classes.PhysObject)(canvas.width / 2, canvas.height - 30, 2, 45);
 const ctx = canvas.getContext("2d");
-obj_list = [
-    test_obj,
-    test_obj2
+var obj_list = [
+    test_obj
 ];
 //iterates through and renders each object
-function drawObjects(x, y) {
-    ctx.beginPath();
-    for(var i = 0; i <= obj_list.length - 1; i++)ctx.arc(obj_list[i].x, obj_list[i].y, 10, 0, Math.PI * 2);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
+clear.addEventListener("click", ()=>{
+    obj_list = [];
+});
+new_obj.addEventListener("click", ()=>{
+    if (dir_input.value == "random") obj_list.push(new (0, _classes.PhysObject)(canvas.width / 2, canvas.height - 30, speed_input.value, Math.floor(Math.random() * 360)));
+    else obj_list.push(new (0, _classes.PhysObject)(canvas.width / 2, canvas.height - 30, speed_input.value, dir_input.value));
+});
+reset.addEventListener("click", ()=>{
+    for(var i = 0; i <= obj_list.length - 1; i++){
+        obj = obj_list[i];
+        obj.x = canvas.width / 2;
+        obj.y = canvas.height - 30;
+    }
+});
+function move_objects() {
+    //wall collision segment
+    for(var i = 0; i <= obj_list.length - 1; i++){
+        obj = obj_list[i];
+        if (obj.x > canvas.width | obj.x < 0) obj.direction -= 90;
+        if (obj.y > canvas.height | obj.y < 0) obj.direction -= 90;
+        //object collision segment
+        for(var j = 0; j <= obj_list.length - 1; j++){
+            obj2 = obj_list[j];
+            if (obj_list.length > 1) {
+                if ((0, _functions.distance)(obj.x, obj.y, obj2.x, obj2.y) < 10) {
+                    obj.direction -= obj2.direction - obj.direction;
+                    obj2.direction -= obj.direction - obj2.direction;
+                }
+            }
+        }
+        //clamp direction value
+        obj.direction = (0, _functions.clamp)(obj.direction);
+        //moves after direction is calculated
+        obj.x += obj.speed * Math.cos(obj.direction * Math.PI / 180);
+        obj.y -= obj.speed * Math.sin(obj.direction * Math.PI / 180);
+    }
+}
+function drawObjects() {
+    for(var i = 0; i <= obj_list.length - 1; i++){
+        //similar to pen down in scratch
+        ctx.beginPath();
+        //creates a circle with the specified radius at said coordinates
+        ctx.arc(obj_list[i].x, obj_list[i].y, 10, 0, Math.PI * 2);
+        //sets and fills it with the specified color
+        ctx.fillStyle = "#00000";
+        ctx.fill();
+        //similar to pen down
+        ctx.closePath();
+    }
 }
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawObjects();
-    for(var i = 0; i <= obj_list.length - 1; i++){
-        obj_list[i].x += obj_list[i].speed;
-        obj_list[i].y -= obj_list[i].speed;
-    }
+    move_objects();
 }
 function startGame() {
     setInterval(draw, 10);
@@ -630,6 +673,10 @@ startGame();
 
 },{"./functions":"iiPrM","./classes":"h7bUy"}],"iiPrM":[function(require,module,exports,__globalThis) {
 //gets the dot product of two vectors
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+//clamps direction value to be inbetween 0 and 360
+parcelHelpers.export(exports, "clamp", ()=>clamp);
 function dot_product(vm1, vm2, va1, va2) {
     return vm1 * vm2 * Math.cos(va1, va2);
 }
@@ -637,28 +684,22 @@ function dot_product(vm1, vm2, va1, va2) {
 function get_angle_difference(theta1, theta2) {
     return Math.abs(theta1 - theta2);
 }
-
-},{}],"h7bUy":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "vector", ()=>vector);
-parcelHelpers.export(exports, "PhysObject", ()=>PhysObject);
-class vector {
-    constructor(direction, magnitude){
-        this.direction = direction;
-        this.magnitude = magnitude;
-    }
+//function for collision with walls
+function wall_collision(obj_direction) {}
+function move(object, velocity, time) {
+    return object.x;
 }
-class PhysObject {
-    constructor(x, y, speed){
-        this.x = x;
-        this.y = y;
-        this.speed = speed;
-    }
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+}
+function clamp(direction) {
+    if (direction > 360) return direction - 360;
+    if (direction < 0) return direction + 360;
+    else return direction;
 }
 module.exports = {
-    PhysObject,
-    vector
+    clamp,
+    distance
 };
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports,__globalThis) {
@@ -691,6 +732,30 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}]},["2ojeG","huXTS"], "huXTS", "parcelRequire94c2")
+},{}],"h7bUy":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "vector", ()=>vector);
+parcelHelpers.export(exports, "PhysObject", ()=>PhysObject);
+class vector {
+    constructor(direction, magnitude){
+        this.direction = direction;
+        this.magnitude = magnitude;
+    }
+}
+class PhysObject {
+    constructor(x, y, speed, direction){
+        this.x = x;
+        this.y = y;
+        this.speed = speed;
+        this.direction = direction;
+    }
+}
+module.exports = {
+    PhysObject,
+    vector
+};
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["2ojeG","huXTS"], "huXTS", "parcelRequire94c2")
 
 //# sourceMappingURL=index.a00b1b1c.js.map
