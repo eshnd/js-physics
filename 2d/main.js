@@ -1,5 +1,5 @@
-import {clamp,distance} from "./functions";
-import {PhysObject} from "./classes";
+import {clamp,distance} from "./functions.js";
+import {PhysObject} from "./classes.js";
 
 const canvas = document.getElementById("myCanvas");
 const reset = document.getElementById("reset")
